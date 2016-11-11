@@ -32,47 +32,28 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mKonashiManager = new KonashiManager(getApplicationContext());
 
-        ((ToggleButton)findViewById(R.id.tgl_blink)).setOnCheckedChangeListener(new ToggleButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton v, boolean isChecked) {
-                mKonashiManager.digitalWrite(Konashi.PIO4, isChecked ? Konashi.HIGH : Konashi.LOW);
-            }
-        });
+//        ((ToggleButton)findViewById(R.id.tgl_blink)).setOnCheckedChangeListener(new ToggleButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton v, boolean isChecked) {
+//                mKonashiManager.digitalWrite(Konashi.PIO4, isChecked ? Konashi.HIGH : Konashi.LOW);
+//            }
+//        });
         // for i2c start / stop
         ((ToggleButton)findViewById(R.id.tgl_i2c)).setOnCheckedChangeListener(new ToggleButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton w, boolean isChecked) {
-//                if (isChecked) {
+                if (isChecked) {
 
                     startDisplay();
                     setPixel();
 
 //                testI2C(self);
 
-//                mKonashiManager.i2cMode(Konashi.I2C_ENABLE_100K)
-//                        .then(mKonashiManager.<BluetoothGattCharacteristic>i2cStartConditionPipe())
-//                        .then(mKonashiManager.<BluetoothGattCharacteristic>i2cReadPipe(Konashi.I2C_DATA_MAX_LENGTH, Constants_Ssd1306.SSD_I2C_ADDRESS))
-//                        .then(new DonePipe<byte[], BluetoothGattCharacteristic, BletiaException, Void>() {
-//                            @Override
-//                            public Promise<BluetoothGattCharacteristic, BletiaException, Void> pipeDone(final byte[] result) {
-//                                StringBuilder builder = new StringBuilder();
-//                                for (byte b : result) {
-//                                    builder.append(b).append(",");
-//                                }
-//                                mResultText.setText(builder.toString().substring(0, builder.length() - 1));
-//                                return mKonashiManager.i2cStopCondition();
-//                            }
-//                        })
-//                        .fail(new FailCallback<BletiaException>() {
-//                            @Override
-//                            public void onFail(BletiaException result) {
-//                                Toast.makeText(self, result.toString(), Toast.LENGTH_SHORT).show();
-//                            }
-//                        });
-//                }
-//               else {
-//                    mKonashiManager.i2cStopCondition();
-//                }
+                }
+               else {
+                    mKonashiManager.i2cStopCondition();
+                    mKonashiManager.digitalWrite(Konashi.PIO4, Konashi.LOW);
+                }
             }
         });
         findViewById(R.id.btn_find).setOnClickListener(new View.OnClickListener() {
@@ -85,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
             public void onConnect(KonashiManager manager) {
                 refreshViews();
                 if (mKonashiManager.isReady()) {
-                    mKonashiManager.pinMode(Konashi.PIO4, Konashi.OUTPUT);
+                    mKonashiManager.pinMode(Konashi.PIO3, Konashi.OUTPUT);
                 }
             }
 
@@ -242,25 +223,25 @@ public class MainActivity extends AppCompatActivity {
 
     private void startDisplay() {
         // RES# pin control
-        mKonashiManager.digitalWrite(Konashi.PIO4, Konashi.LOW);
+        mKonashiManager.digitalWrite(Konashi.PIO3, Konashi.LOW);
         try {
             sleep(100);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        mKonashiManager.digitalWrite(Konashi.PIO4, Konashi.HIGH);
+        mKonashiManager.digitalWrite(Konashi.PIO3, Konashi.HIGH);
         try {
             sleep(100);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        mKonashiManager.digitalWrite(Konashi.PIO4, Konashi.LOW);
+        mKonashiManager.digitalWrite(Konashi.PIO3, Konashi.LOW);
         try {
             sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        mKonashiManager.digitalWrite(Konashi.PIO4, Konashi.HIGH);
+        mKonashiManager.digitalWrite(Konashi.PIO3, Konashi.HIGH);
         try {
             sleep(500);
         } catch (InterruptedException e) {
@@ -268,11 +249,61 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // i2c start
-        byte[] value = new byte[]{(byte)0x00, Constants_Ssd1306.SSD1306_CHARGEPUMP, Constants_Ssd1306.SSD1306_INTERNALVCC, Constants_Ssd1306.SSD1306_SEGREMAP,
-                Constants_Ssd1306.SSD1306_DISPLAYALLON_RESUME, Constants_Ssd1306.SSD1306_NORMALDISPLAY, Constants_Ssd1306.SSD1306_DISPLAYON};
+//        byte[] value = new byte[]{(byte)0x00, Constants_Ssd1306.SSD1306_CHARGEPUMP, Constants_Ssd1306.SSD1306_INTERNALVCC,
+//                (byte)0xC0, (byte)0xDA, (byte)0x02, Constants_Ssd1306.SSD1306_DISPLAYALLON_RESUME, Constants_Ssd1306.SSD1306_NORMALDISPLAY, (byte)0x20, (byte)0b00, Constants_Ssd1306.SSD1306_DISPLAYON};
+        byte[] value = new byte[]{
+                (byte) 0x00,
+                (byte) 0xAE,
+                (byte) 0xD5,
+                (byte) 0x80,
+                (byte) 0xA8,
+                (byte) 0x2F,
+                (byte) 0xD3,
+                (byte) 0x00,
+                (byte) 0x40,
+                (byte) 0xA1,
+                (byte) 0xC8,
+                (byte) 0xDA,
+                (byte) 0x12,
+                (byte) 0x81,
+                (byte) 0xCF
+        };
+
+        byte[] value2 = new byte[] {
+                (byte)0x00,
+                (byte)0xD9,
+                (byte)0x22,
+                (byte)0xDB,
+                (byte)0x00,
+                (byte)0x8D,
+                (byte)0x14,
+                Constants_Ssd1306.SSD1306_DISPLAYALLON_RESUME,
+                Constants_Ssd1306.SSD1306_NORMALDISPLAY,
+                (byte)0x20,
+                (byte)0b00,
+                Constants_Ssd1306.SSD1306_DISPLAYON
+        };
+
         mKonashiManager.i2cMode(Konashi.I2C_ENABLE_100K)
                 .then(mKonashiManager.<BluetoothGattCharacteristic>i2cStartConditionPipe())
                 .then(mKonashiManager.<BluetoothGattCharacteristic>i2cWritePipe(value.length, value, Constants_Ssd1306.SSD_I2C_ADDRESS))
+                .then(mKonashiManager.<BluetoothGattCharacteristic>i2cStopConditionPipe())
+                .fail(new FailCallback<BletiaException>() {
+                    @Override
+                    public void onFail(BletiaException result) {
+                        Toast.makeText(self, result.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        try {
+            sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        mKonashiManager.i2cMode(Konashi.I2C_ENABLE_100K)
+                .then(mKonashiManager.<BluetoothGattCharacteristic>i2cRestartConditionPipe())
+                .then(mKonashiManager.<BluetoothGattCharacteristic>i2cWritePipe(value2.length, value2, Constants_Ssd1306.SSD_I2C_ADDRESS))
                 .then(mKonashiManager.<BluetoothGattCharacteristic>i2cStopConditionPipe())
                 .fail(new FailCallback<BletiaException>() {
                     @Override
@@ -320,7 +351,13 @@ public class MainActivity extends AppCompatActivity {
 //        i2cCommandP2((byte)0x21, (byte)0x01, (byte)0x3e);
 //        i2cCommandP2((byte)0x22, (byte)0x01, (byte)0x03);
 
-        byte[] value = new byte[]{(byte)0x00, (byte)0x21, (byte)0x01, (byte)0x3e, (byte)0x22, (byte)0x01, (byte)0x03};
+//        byte[] value = new byte[]{(byte)0x00, (byte)0x21, (byte)32, (byte)95, (byte)0x22, (byte)0, (byte)6, (byte)0x40, (byte)0xD3, (byte)0};
+        byte[] value = new byte[]{(byte)0x00, (byte)0x21, (byte)1, (byte)64, (byte)0x22, (byte)0, (byte)6, (byte)0x40};
+        try {
+            sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         mKonashiManager.i2cMode(Konashi.I2C_ENABLE_100K)
                 .then(mKonashiManager.<BluetoothGattCharacteristic>i2cStartConditionPipe())
                 .then(mKonashiManager.<BluetoothGattCharacteristic>i2cWritePipe(value.length, value, Constants_Ssd1306.SSD_I2C_ADDRESS))
@@ -333,22 +370,67 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         // put dots
-        mKonashiManager.i2cStartCondition();
-        mKonashiManager.i2cWrite(1, new byte[]{(byte)0x40,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, }, Constants_Ssd1306.SSD_I2C_ADDRESS);
-        mKonashiManager.i2cStopCondition();
+        byte[] value2 = new byte[]{(byte)0x40,
+                (byte)0xFF,
+                (byte)0xFF,
+                (byte)0xFF,
+                (byte)0xFF,
+                (byte)0xFF,
+                (byte)0xFF,
+                (byte)0x00,
+                (byte)0xFF,
+                (byte)0x00,
+                (byte)0xFF
+        };
+
+        try {
+            sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        mKonashiManager.i2cMode(Konashi.I2C_ENABLE_100K)
+                .then(mKonashiManager.<BluetoothGattCharacteristic>i2cStartConditionPipe())
+                .then(mKonashiManager.<BluetoothGattCharacteristic>i2cWritePipe(value2.length, value2, Constants_Ssd1306.SSD_I2C_ADDRESS))
+                .then(mKonashiManager.<BluetoothGattCharacteristic>i2cStopConditionPipe())
+                .fail(new FailCallback<BletiaException>() {
+                    @Override
+                    public void onFail(BletiaException result) {
+                        Toast.makeText(self, result.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        // blinking
+//        try {
+//            sleep(1);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        mKonashiManager.i2cMode(Konashi.I2C_ENABLE_100K)
+//                .then(mKonashiManager.<BluetoothGattCharacteristic>i2cStartConditionPipe())
+//                .then(mKonashiManager.<BluetoothGattCharacteristic>i2cWritePipe(3, new byte[] {(byte)0x00, (byte)0x23, (byte)0x3F}, Constants_Ssd1306.SSD_I2C_ADDRESS))
+//                .then(mKonashiManager.<BluetoothGattCharacteristic>i2cStopConditionPipe())
+//                .fail(new FailCallback<BletiaException>() {
+//                    @Override
+//                    public void onFail(BletiaException result) {
+//                        Toast.makeText(self, result.getMessage(), Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+//        mKonashiManager.i2cStartCondition();
+//        mKonashiManager.i2cWrite(1, new byte[]{(byte)0x40,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+//                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, }, Constants_Ssd1306.SSD_I2C_ADDRESS);
+//        mKonashiManager.i2cStopCondition();
     }
 }
